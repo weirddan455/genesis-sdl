@@ -1,12 +1,18 @@
 cmake_minimum_required(VERSION 3.13)
 project(genesis)
-include(FetchContent)
+
+# Change this to Debug if you want to debug
+set(CMAKE_BUILD_TYPE Release)
+
+# Generates compile_commands.json which gets read by clangd (I use the extension in vscode).
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Create a symlink to the resources in the build directory
 if (NOT ${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
     execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/res ${CMAKE_BINARY_DIR}/res)
 endif()
 
+include(FetchContent)
 FetchContent_Declare(
     zlib
     URL https://zlib.net/zlib-1.2.13.tar.gz

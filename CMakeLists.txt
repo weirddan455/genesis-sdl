@@ -17,7 +17,7 @@ FetchContent_Declare(
     samplerate
     URL https://github.com/libsndfile/libsamplerate/releases/download/0.2.2/libsamplerate-0.2.2.tar.xz
 )
-FetchContent_MakeAvailable(sdl2 png freetype samplerate)
+FetchContent_MakeAvailable(png sdl2 freetype samplerate)
 add_executable(genesis src/main.c src/assets.c src/game.c src/pcgrandom.c src/audio.c src/font.c)
 if (MSVC)
 

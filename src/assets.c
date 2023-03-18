@@ -5,7 +5,7 @@
 #include <string.h>
 
 #include <png.h>
-#include <SDL2/SDL.h>
+#include "SDL.h"
 
 #include "assets.h"
 #include "game.h"

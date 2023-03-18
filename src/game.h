@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#include <SDL2/SDL.h>
+#include "SDL.h"
 
 #define SPRITE_GROUND 0
 #define SPRITE_GRASS 1

@@ -1,7 +1,7 @@
 #ifndef ASSETS_H
 #define ASSETS_H
 
-#include <SDL2/SDL.h>
+#include "SDL.h"
 
 #include "game.h"
 

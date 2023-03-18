@@ -1,9 +1,14 @@
 #include "pcgrandom.h"
 
+#ifdef _WIN32
+#include <Windows.h>
+#else
 #include <fcntl.h>
+#include <unistd.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 
 typedef struct RngState
 {
@@ -15,6 +20,27 @@ static RngState rng_state;
 
 void seed_rng(void)
 {
+    #ifdef _WIN32
+    uint64_t buffer[2];
+    HMODULE library = LoadLibraryA("advapi32.dll");
+    if (library == NULL) {
+        fprintf(stderr, "Failed to load advapi32.dll\n");
+        exit(EXIT_FAILURE);
+    }
+    // Calls RtlGenRandom with dynamic function pointer per MSDN: https://docs.microsoft.com/en-us/windows/win32/api/ntsecapi/nf-ntsecapi-rtlgenrandom
+    BOOLEAN (*rng_ptr)(PVOID, ULONG) = GetProcAddress(library, "SystemFunction036");
+    if (rng_ptr == NULL) {
+        fprintf(stderr, "GetProcAddress failed for RtlGenRandom\n");
+        exit(EXIT_FAILURE);
+    }
+    if (rng_ptr(buffer, 16) == FALSE) {
+        fprintf(stderr, "RtlGenRandom failed\n");
+        exit(EXIT_FAILURE);
+    }
+    rng_state.state = buffer[0];
+    rng_state.inc = buffer[1] | 1;
+    FreeLibrary(library);
+    #else
     int fd = open("/dev/urandom", O_RDONLY);
     if (fd == -1) {
         perror("failed to open /dev/urandom");
@@ -33,6 +59,7 @@ void seed_rng(void)
     rng_state.state = buffer[0];
     rng_state.inc = buffer[1] | 1;
     close(fd);
+    #endif
 }
 
 uint32_t pcg_get_random(void)

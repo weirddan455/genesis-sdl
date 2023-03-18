@@ -35,7 +35,7 @@ static SDL_Renderer *init_sdl()
     return renderer;
 }
 
-int main(void)
+int main(int argv, char **argc)
 {
     seed_rng();
     SDL_Renderer *renderer = init_sdl();

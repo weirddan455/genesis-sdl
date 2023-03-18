@@ -5,8 +5,6 @@
 #include <stdlib.h>
 #include "SDL.h"
 
-#include <string.h>
-
 #include "font.h"
 
 typedef struct Glyph

@@ -54,6 +54,10 @@ set(PNG_FOUND ON)
 set(PNG_INCLUDE_DIRS ${png_SOURCE_DIR} ${png_BINARY_DIR})
 set(PNG_LIBRARIES png_static)
 
+# Disable libsamplerate for SDL. It was causing linker errors on Linux since we're using it directly (on Windows this is disabled by default anyway).
+# We're using libsamplerate directly for resampling so this shouldn't make any difference.
+set(SDL_LIBSAMPLERATE OFF CACHE INTERNAL "Use libsamplerate" FORCE)
+
 FetchContent_MakeAvailable(freetype samplerate sdl2)
 add_executable(genesis src/main.c src/assets.c src/game.c src/pcgrandom.c src/audio.c src/font.c)
 

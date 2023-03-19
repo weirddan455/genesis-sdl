@@ -458,7 +458,7 @@ void render_game(float delta, int64_t ticks, SDL_Renderer *renderer)
     int seconds = timer % 60;
     char timer_string[32];
     snprintf(timer_string, sizeof(timer_string), "%d:%02d", minutes, seconds);
-    render_string(timer_string, 0, 30, renderer);
+    render_string_centered(timer_string, render_width / 2, render_height - 15, renderer);
 
     SDL_RenderPresent(renderer);
 }

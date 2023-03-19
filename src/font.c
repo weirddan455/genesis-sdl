@@ -53,7 +53,7 @@ void init_fonts(SDL_Renderer *renderer)
         SDL_LockSurface(surface);
         uint8_t *src = face->glyph->bitmap.buffer;
         uint32_t *dst = surface->pixels;
-        uint32_t color = (255 << 16) | (0 << 8) | 0;
+        uint32_t color = 0x00ffffff;
         int pixels = glyphs[i].width * glyphs[i].height;
         for (int p = 0; p < pixels; p++) {
             *dst++ = (*src++ << 24) | color;
@@ -75,15 +75,10 @@ void init_fonts(SDL_Renderer *renderer)
     FT_Done_FreeType(library);
 }
 
-void render_string(char *string, int x, int y, SDL_Renderer *renderer)
+void render_string(const char *string, int x, int y, SDL_Renderer *renderer)
 {
-    while (1) {
-        char c = *string;
-        if (c == '\0') {
-            break;
-        }
-        string++;
-        int i = c - 33;
+    for (const char *s = string; *s != '\0'; s++) {
+        int i = *s - 33;
         if (i < 0 || i >= 94) {
             x += space_advance;
             continue;
@@ -96,4 +91,18 @@ void render_string(char *string, int x, int y, SDL_Renderer *renderer)
         SDL_RenderCopy(renderer, glyphs[i].texture, NULL, &rect);
         x += glyphs[i].advance;
     }
+}
+
+void render_string_centered(const char *string, int x, int y, SDL_Renderer *renderer)
+{
+    int width = 0;
+    for (const char *s = string; *s != '\0'; s++) {
+        int i = *s - 33;
+        if (i >= 0 && i < 94) {
+            width += glyphs[i].advance;
+        } else {
+            width += space_advance;
+        }
+    }
+    render_string(string, x - (width / 2), y, renderer);
 }

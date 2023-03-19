@@ -1,0 +1,5 @@
+Game assets are taken from The Cherno's original Genesis GitHub page: https://github.com/TheCherno/Genesis/
+There doesn't appear to be any license associated with these files but I'm assuming he doesn't mind them being redistributed unmodified.
+If there is any legal issue, please file an issue on this project's GitHub.
+
+Fonts are taken from GNU Free Fonts.  They are GPL3 licened.  See COPYING and CREDITS inside the fonts directory.

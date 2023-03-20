@@ -19,7 +19,7 @@
 #define MOB_ANIMATION(ticks) ((ticks) & 128)
 #define WATER_ANIMATION(ticks) ((ticks) & 1024)
 
-#define MOB_SPEED 400.0f
+#define MOB_SPEED 200.0f
 #define SCALE 3
 
 #define TILE_SIZE (16 * SCALE)
@@ -53,11 +53,6 @@ typedef struct MobArray
     size_t size;
     size_t capacity;
 } MobArray;
-
-const Uint8 *keyboard;
-
-static SDL_Texture *sprite_texture;
-static TileMap tile_map;
 
 static const SDL_Rect world_sprites[] = {
     [SPRITE_GROUND] = {0, 0, 16, 16},
@@ -99,13 +94,16 @@ static const SDL_Rect virgin_female_sprites[] = {
     [SPRITE_MOB_RIGHT_1] = {80, 144, 16, 16}
 };
 
+const Uint8 *keyboard;
+static SDL_Texture *sprite_texture;
+static TileMap tile_map;
 static Sprite player = {TILE_TO_WORLD(54), TILE_TO_WORLD(23), DOWN, false};
-
 static MobArray females;
 static MobArray virgin_females;
 static MobArray children;
-
 static int64_t start_ticks;
+static float population;
+static float population_growth = 3.0f;
 
 static void init_mob_array(MobArray *array)
 {
@@ -204,6 +202,7 @@ void update_game(float delta)
 {
     static float mob_timer = 0.0f;
     mob_timer += delta;
+    population += (population_growth * delta);
     float mob_speed = delta * MOB_SPEED;
     float x = player.x;
     float y = player.y;
@@ -275,6 +274,7 @@ void update_game(float delta)
         female_rect.w = TILE_SIZE;
         female_rect.h = TILE_SIZE;
         if (SDL_HasIntersectionF(&player_rect, &female_rect)) {
+            population_growth += (population_growth * 0.25f);
             play_sound(&breed);
             uint32_t num_children = pcg_ranged_random(4) + 1;
             for (uint32_t c = 0; c < num_children; c++) {
@@ -456,9 +456,12 @@ void render_game(float delta, int64_t ticks, SDL_Renderer *renderer)
     int timer = 300 - ((ticks - start_ticks) / 1000);
     int minutes = timer / 60;
     int seconds = timer % 60;
-    char timer_string[32];
-    snprintf(timer_string, sizeof(timer_string), "%d:%02d", minutes, seconds);
-    render_string_centered(timer_string, render_width / 2, render_height - 15, renderer);
+    char string_buffer[32];
+    snprintf(string_buffer, sizeof(string_buffer), "%d:%02d", minutes, seconds);
+    render_string_centered(string_buffer, render_width / 2, render_height - 15, renderer);
+
+    snprintf(string_buffer, sizeof(string_buffer), "Population: %d", (int)population);
+    render_string_right(string_buffer, render_width, 30, renderer);
 
     SDL_RenderPresent(renderer);
 }

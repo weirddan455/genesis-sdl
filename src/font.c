@@ -75,6 +75,20 @@ void init_fonts(SDL_Renderer *renderer)
     FT_Done_FreeType(library);
 }
 
+static int get_string_width(const char *string)
+{
+    int width = 0;
+    for (const char *s = string; *s != '\0'; s++) {
+        int i = *s - 33;
+        if (i >= 0 && i < 94) {
+            width += glyphs[i].advance;
+        } else {
+            width += space_advance;
+        }
+    }
+    return width;
+}
+
 void render_string(const char *string, int x, int y, SDL_Renderer *renderer)
 {
     for (const char *s = string; *s != '\0'; s++) {
@@ -95,14 +109,10 @@ void render_string(const char *string, int x, int y, SDL_Renderer *renderer)
 
 void render_string_centered(const char *string, int x, int y, SDL_Renderer *renderer)
 {
-    int width = 0;
-    for (const char *s = string; *s != '\0'; s++) {
-        int i = *s - 33;
-        if (i >= 0 && i < 94) {
-            width += glyphs[i].advance;
-        } else {
-            width += space_advance;
-        }
-    }
-    render_string(string, x - (width / 2), y, renderer);
+    render_string(string, x - (get_string_width(string) / 2), y, renderer);
+}
+
+void render_string_right(const char *string, int x, int y, SDL_Renderer *renderer)
+{
+    render_string(string, x - get_string_width(string), y, renderer);
 }

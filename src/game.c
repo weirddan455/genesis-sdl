@@ -348,68 +348,55 @@ static void render_mob(Sprite *sprite, const SDL_Rect *srcrect, int64_t ticks)
     SDL_RenderCopyExF(renderer.sdl, sprite_texture, srcrect, &dstrect, 0, NULL, flip);
 }
 
+/*
+ * Currently we're just rendering everything.  I had some code previously to only render the part of the tile map that was on screen.
+ * Checkout commit a2c5b2367b409036eb8728dcfc55f7581da87e3b to see old code.
+ *
+ * However, it was hard to follow and I believe incorrect as well (some tiles appeared slightly off center).
+ * Removing this hurt performance somewhat but SDL still does an intersect check with the viewport internally so we're not *actually* sending all these draw calls to the GPU.
+ * see build/_deps/sdl2-src/src/render/SDL_render.c:3521
+ *
+ * May still want to revisit optimizations here in the future.
+ */
 void render_game(float delta, int64_t ticks)
 {
-    int x0 = (player.x - (WORLD_WIDTH * 0.5f)) + 0.5f;
-    int y0 = (player.y - (WORLD_HEIGHT * 0.5f)) + 0.5f;
-    int x_off = (-(x0 % TILE_SIZE)) - TILE_SIZE;
-    int y_off = (-(y0 % TILE_SIZE)) - TILE_SIZE;
-    int x_tiles = (WORLD_WIDTH / TILE_SIZE) + 3;
-    int y_tiles = (WORLD_HEIGHT / TILE_SIZE) + 3;
-    int tile_x = (x0 / TILE_SIZE) - 1;
-    int tile_y = (y0 / TILE_SIZE) - 1;
-    SDL_Rect dest_blit;
-    dest_blit.x = x_off;
-    dest_blit.y = y_off;
-    dest_blit.w = TILE_SIZE;
-    dest_blit.h = TILE_SIZE;
-    for (int y = 0; y < y_tiles; y++) {
-        int map_y = tile_y + y;
-        if (map_y >= 0 && map_y < tile_map.height) {
-            for (int x = 0; x < x_tiles; x++) {
-                int map_x = tile_x + x;
-                if (map_x >= 0 && map_x < tile_map.width) {
-                    uint16_t tile = tile_map.tiles[(map_y * tile_map.width) + map_x];
-                    const SDL_Rect *sprite;
-                    if (tile == TILE_WATER && WATER_ANIMATION(ticks)) {
-                        sprite = &world_sprites[SPRITE_WATER_1];
-                    } else {
-                        sprite = &world_sprites[BACKGROUND(tile)];
-                    }
-                    SDL_RenderCopy(renderer.sdl, sprite_texture, sprite, &dest_blit);
-                }
-                dest_blit.x += TILE_SIZE;
+    for (int y = 0; y < tile_map.height; y++) {
+        for (int x = 0; x < tile_map.width; x++) {
+            uint16_t tile = tile_map.tiles[(y * tile_map.width) + x];
+            const SDL_Rect *sprite;
+            if (tile == TILE_WATER && WATER_ANIMATION(ticks)) {
+                sprite = &world_sprites[SPRITE_WATER_1];
+            } else {
+                sprite = &world_sprites[BACKGROUND(tile)];
             }
+            SDL_FRect dstrect;
+            dstrect.x = ((float)x * (float)TILE_SIZE) - player.x + (WORLD_WIDTH * 0.5f);
+            dstrect.y = ((float)y * (float)TILE_SIZE) - player.y + (WORLD_HEIGHT * 0.5f);
+            dstrect.w = TILE_SIZE;
+            dstrect.h = TILE_SIZE;
+            SDL_RenderCopyF(renderer.sdl, sprite_texture, sprite, &dstrect);
         }
-        dest_blit.x = x_off;
-        dest_blit.y += TILE_SIZE;
     }
 
-    dest_blit.x = x_off;
-    dest_blit.y = y_off;
-    for (int y = 0; y < y_tiles; y++) {
-        int map_y = tile_y + y;
-        if (map_y >= 0 && map_y < tile_map.height) {
-            for (int x = 0; x < x_tiles; x++) {
-                int map_x = tile_x + x;
-                if (map_x >= 0 && map_x < tile_map.width) {
-                    uint16_t foreground = FOREGROUND(tile_map.tiles[(map_y * tile_map.width) + map_x]);
-                    if (foreground == SPRITE_TORCH) {
-                        SDL_RenderCopy(renderer.sdl, sprite_texture, &world_sprites[SPRITE_TORCH], &dest_blit);
-                    } else if (foreground == SPRITE_TREE_TOP) {
-                        SDL_Rect tree_bottom;
-                        tree_bottom.x = dest_blit.x;
-                        tree_bottom.y = dest_blit.y + TILE_SIZE;
-                        tree_bottom.w = TILE_SIZE * 2;
-                        tree_bottom.h = TILE_SIZE;
-                        SDL_RenderCopy(renderer.sdl, sprite_texture, &world_sprites[SPRITE_TREE_BOTTOM], &tree_bottom);
-                    }
-                }
-                dest_blit.x += TILE_SIZE;
+    for (int y = 0; y < tile_map.height; y++) {
+        for (int x = 0; x < tile_map.width; x++) {
+            uint16_t foreground = FOREGROUND(tile_map.tiles[(y * tile_map.width) + x]);
+            if (foreground == SPRITE_TORCH) {
+                SDL_FRect dstrect;
+                dstrect.x = ((float)x * (float)TILE_SIZE) - player.x + (WORLD_WIDTH * 0.5f);
+                dstrect.y = ((float)y * (float)TILE_SIZE) - player.y + (WORLD_HEIGHT * 0.5f);
+                dstrect.w = TILE_SIZE;
+                dstrect.h = TILE_SIZE;
+                SDL_RenderCopyF(renderer.sdl, sprite_texture, &world_sprites[SPRITE_TORCH], &dstrect);
+            } else if (foreground == SPRITE_TREE_TOP) {
+                SDL_FRect tree_bottom;
+                tree_bottom.x = ((float)x * (float)TILE_SIZE) - player.x + (WORLD_WIDTH * 0.5f);
+                tree_bottom.y = ((float)y * (float)TILE_SIZE) - player.y + (WORLD_HEIGHT * 0.5f) + (float)TILE_SIZE;
+                tree_bottom.w = TILE_SIZE * 2.0f;
+                tree_bottom.h = TILE_SIZE;
+                SDL_RenderCopyF(renderer.sdl, sprite_texture, &world_sprites[SPRITE_TREE_BOTTOM], &tree_bottom);
             }
         }
-        dest_blit.x = x_off;
-        dest_blit.y += TILE_SIZE;
     }
 
     for (size_t i = 0; i < children.size; i++) {
@@ -423,29 +410,18 @@ void render_game(float delta, int64_t ticks)
     }
     render_mob(&player, player_sprites, ticks);
 
-    dest_blit.x = x_off;
-    dest_blit.y = y_off;
-    for (int y = 0; y < y_tiles; y++) {
-        int map_y = tile_y + y;
-        if (map_y >= 0 && map_y < tile_map.height) {
-            for (int x = 0; x < x_tiles; x++) {
-                int map_x = tile_x + x;
-                if (map_x >= 0 && map_x < tile_map.width) {
-                    uint16_t tile = tile_map.tiles[(map_y * tile_map.width) + map_x];
-                    if (tile == TILE_TREE) {
-                        SDL_Rect tree_top;
-                        tree_top.x = dest_blit.x;
-                        tree_top.y = dest_blit.y;
-                        tree_top.w = TILE_SIZE * 2;
-                        tree_top.h = TILE_SIZE;
-                        SDL_RenderCopy(renderer.sdl, sprite_texture, &world_sprites[SPRITE_TREE_TOP], &tree_top);
-                    }
-                }
-                dest_blit.x += TILE_SIZE;
+    for (int y = 0; y < tile_map.height; y++) {
+        for (int x = 0; x < tile_map.width; x++) {
+            uint16_t tile = tile_map.tiles[(y * tile_map.width) + x];
+            if (tile == TILE_TREE) {
+                SDL_FRect tree_top;
+                tree_top.x = ((float)x * (float)TILE_SIZE) - player.x + (WORLD_WIDTH * 0.5f);
+                tree_top.y = ((float)y * (float)TILE_SIZE) - player.y + (WORLD_HEIGHT * 0.5f);
+                tree_top.w = TILE_SIZE * 2.0f;
+                tree_top.h = TILE_SIZE;
+                SDL_RenderCopyF(renderer.sdl, sprite_texture, &world_sprites[SPRITE_TREE_TOP], &tree_top);
             }
         }
-        dest_blit.x = x_off;
-        dest_blit.y += TILE_SIZE;
     }
 }
 

@@ -119,7 +119,7 @@ static uint32_t get_png_pixel(uint32_t x, uint32_t y, Png *png)
     }
 }
 
-SDL_Texture *load_sprites(const char *filename, SDL_Renderer *renderer)
+SDL_Texture *load_sprites(const char *filename)
 {
     Png png;
     load_png(filename, &png);
@@ -158,7 +158,7 @@ SDL_Texture *load_sprites(const char *filename, SDL_Renderer *renderer)
     }
     SDL_UnlockSurface(surface);
     destroy_png(&png);
-    SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer.sdl, surface);
     if (texture == NULL) {
         fprintf(stderr, "SDL_CreateTextureFromSurface failed: %s\n", SDL_GetError());
         exit(EXIT_FAILURE);

@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include "SDL.h"
 
+#include "game.h"
 #include "font.h"
 
 typedef struct Glyph
@@ -20,7 +21,7 @@ typedef struct Glyph
 static Glyph glyphs[94];
 static int space_advance;
 
-void init_fonts(SDL_Renderer *renderer)
+void init_fonts(void)
 {
     FT_Library library;
     if (FT_Init_FreeType(&library) != 0) {
@@ -59,7 +60,7 @@ void init_fonts(SDL_Renderer *renderer)
             *dst++ = (*src++ << 24) | color;
         }
         SDL_UnlockSurface(surface);
-        glyphs[i].texture = SDL_CreateTextureFromSurface(renderer, surface);
+        glyphs[i].texture = SDL_CreateTextureFromSurface(renderer.sdl, surface);
         if (glyphs[i].texture == NULL) {
             fprintf(stderr, "SDL_CreateTextureFromSurface failed: %s\n", SDL_GetError());
             exit(-1);
@@ -89,7 +90,7 @@ static int get_string_width(const char *string)
     return width;
 }
 
-void render_string(const char *string, int x, int y, SDL_Renderer *renderer)
+void render_string(const char *string, int x, int y)
 {
     for (const char *s = string; *s != '\0'; s++) {
         int i = *s - 33;
@@ -102,17 +103,17 @@ void render_string(const char *string, int x, int y, SDL_Renderer *renderer)
         rect.y = y - glyphs[i].bearingY;
         rect.w = glyphs[i].width;
         rect.h = glyphs[i].height;
-        SDL_RenderCopy(renderer, glyphs[i].texture, NULL, &rect);
+        SDL_RenderCopy(renderer.sdl, glyphs[i].texture, NULL, &rect);
         x += glyphs[i].advance;
     }
 }
 
-void render_string_centered(const char *string, int x, int y, SDL_Renderer *renderer)
+void render_string_centered(const char *string, int x, int y)
 {
-    render_string(string, x - (get_string_width(string) / 2), y, renderer);
+    render_string(string, x - (get_string_width(string) / 2), y);
 }
 
-void render_string_right(const char *string, int x, int y, SDL_Renderer *renderer)
+void render_string_right(const char *string, int x, int y)
 {
-    render_string(string, x - get_string_width(string), y, renderer);
+    render_string(string, x - get_string_width(string), y);
 }

@@ -5,7 +5,7 @@
 
 #include "game.h"
 
-SDL_Texture *load_sprites(const char *filename, SDL_Renderer *renderer);
+SDL_Texture *load_sprites(const char *filename);
 void load_level(TileMap *tile_map, const char *filename);
 
 #endif

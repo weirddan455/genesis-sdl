@@ -5,6 +5,9 @@
 
 #include "SDL.h"
 
+#define WORLD_WIDTH 300
+#define WORLD_HEIGHT 180
+
 #define SPRITE_GROUND 0
 #define SPRITE_GRASS 1
 #define SPRITE_FLOWER 2
@@ -41,10 +44,20 @@ typedef struct TileMap
     uint16_t *tiles;
 } TileMap;
 
-extern const Uint8 *keyboard;
+typedef struct Renderer
+{
+    int width;
+    int height;
+    SDL_Renderer *sdl;
+    SDL_Texture *world_target;
+} Renderer;
 
-void init_game(int64_t ticks, SDL_Renderer *renderer);
-void render_game(float delta, int64_t ticks, SDL_Renderer *renderer);
+extern const Uint8 *keyboard;
+extern Renderer renderer;
+
+void init_game(int64_t ticks);
+void render_game(float delta, int64_t ticks);
+void render_overlay(int64_t ticks);
 void update_game(float delta);
 
 #endif

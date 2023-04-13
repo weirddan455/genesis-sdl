@@ -31,7 +31,7 @@ FetchContent_Declare(
 )
 FetchContent_Declare(
     sdl2
-    URL https://github.com/libsdl-org/SDL/releases/download/release-2.26.4/SDL2-2.26.4.tar.gz
+    URL https://github.com/libsdl-org/SDL/releases/download/release-2.26.5/SDL2-2.26.5.tar.gz
 )
 
 FetchContent_MakeAvailable(zlib)
